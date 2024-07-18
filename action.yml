@@ -29,7 +29,7 @@ runs:
     - name: Get MSSQL Version
       if: env.OBTAIN_MSSQL_ZIP == true
       id: get-mssql-version-base
-      uses: mavrosxristoforos/get-xml-info@1.0
+      uses: mavrosxristoforos/get-xml-info@2.0
       with:
         xml-file: 'effective-pom.xml'
         xpath: '//*[local-name()="mssql-jdbc.version"]'
