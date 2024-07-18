@@ -1,0 +1,52 @@
+name: Download MSSSQL Auth
+description: "Downloads the MSSQL Auth zip folder if needed"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run YAML to Github Output Action
+      id: yaml-output
+      uses: christian-ci/action-yaml-github-output@v2
+      with:
+        file_path: ${{ github.workspace }}/src/main/resources/application.yaml
+        main_key: spring
+        sub_key: datasource
+
+    - name: Check Driver Class Name
+      shell: bash
+      run: |
+        if [[ com.microsoft.sqlserver.jdbc.SQLServerDriver == ${{ steps.yaml-output.outputs.driver-class-name }} ]]; then
+          echo "OBTAIN_MSSQL_ZIP=true" >> "GITHUB_ENV"
+        else
+          echo "OBTAIN_MSSQL_ZIP=true" >> "GITHUB_ENV"
+        fi
+
+    - name: Get Effective Pom
+      if: env.OBTAIN_MSSQL_ZIP == true
+      shell: bash
+      run: mvn help:effective-pom -Doutput=effective-pom.xml
+
+    - name: Get MSSQL Version
+      if: env.OBTAIN_MSSQL_ZIP == true
+      id: get-mssql-version-base
+      uses: mavrosxristoforos/get-xml-info@1.0
+      with:
+        xml-file: 'effective-pom.xml'
+        xpath: '//*[local-name()="mssql-jdbc.version"]'
+
+    - name: Replace .jre11 from mssql version
+      if: env.OBTAIN_MSSQL_ZIP == true
+      id: get-mssql-version
+      uses: mad9000/actions-find-and-replace-string@5
+      with:
+        source: ${{ steps.get-mssql-version-base.outputs.info }} # this translates to ref/heads/main on the main branch, but can be any arbitrary string
+        find: '.jre11'        # we want to remove ref/heads/ from source
+        replace: ''               # and replace it with a blank string (ie. removing it)
+
+    - name: Download MSSQL Auth File
+      if: env.OBTAIN_MSSQL_ZIP == true
+      id: download-file
+      uses: carlosperate/download-file-action@v2
+      with:
+        file-url: 'https://github.com/microsoft/mssql-jdbc/releases/download/v${{ steps.get-mssql-version.outputs.value }}/mssql-jdbc_auth.zip'
+        file-name: 'mssql-jdbc_auth_${{ steps.get-mssql-version.outputs.value }}.zip'
