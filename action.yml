@@ -18,7 +18,7 @@ runs:
         if [[ com.microsoft.sqlserver.jdbc.SQLServerDriver == ${{ steps.yaml-output.outputs.driver-class-name }} ]]; then
           echo "OBTAIN_MSSQL_ZIP=true" >> "GITHUB_ENV"
         else
-          echo "OBTAIN_MSSQL_ZIP=true" >> "GITHUB_ENV"
+          echo "OBTAIN_MSSQL_ZIP=false" >> "GITHUB_ENV"
         fi
 
     - name: Get Effective Pom
